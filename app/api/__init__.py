@@ -1,9 +1,5 @@
 # -*- coding: utf-8 -*-
-from flask import Flask
-
-from app.api import bp as api_bp
-from config import Config
-
+from flask import Blueprint
 """
 -------------------------------------------------
    File Name：     __init__.py
@@ -15,7 +11,4 @@ from config import Config
                    2019/3/16 0016:
 -------------------------------------------------
 """
-app = Flask(__name__)
-app.config.from_object(Config)
-# register blueprint
-app.register_blueprint(api_bp, url_prefix='/api')
+bp = Blueprint(__name__)
