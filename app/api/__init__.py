@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from flask import Blueprint
+
 """
 -------------------------------------------------
    File Name：     __init__.py
@@ -11,4 +12,4 @@ from flask import Blueprint
                    2019/3/16 0016:
 -------------------------------------------------
 """
-bp = Blueprint(__name__)
+bp = Blueprint('api', __name__)
