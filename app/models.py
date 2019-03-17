@@ -21,7 +21,7 @@ class Item(db.Model):
     body = db.Column(db.String(300))
     post_on = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Integer, default=1)  # 1未完成 2已完成 0已删除
-    category_id = db.Column(db.String(36), db.Foreignkey('category.id'))
+    category_id = db.Column(db.String(36), db.ForeignKey('category.id'))
 
     def to_dict(self):
         data = {
@@ -38,11 +38,12 @@ class Item(db.Model):
     def get_id():
         return str(uuid.uuid4())
 
-    def from_dict(self, data):
+    def from_dict(self, data, new_item=False):
         for field in ['body', 'status', 'category_id']:
             if field in data:
-                setattr(field, data[field])
-        self.id = self.get_id()
+                setattr(self, field, data[field])
+        if new_item:
+            self.id = self.get_id()
 
 
 class Category(db.Model):

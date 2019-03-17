@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from flask import Flask
 
-from app.api import bp as api_bp
 from config import Config
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+
 """
 -------------------------------------------------
    File Name：     __init__.py
@@ -23,4 +23,8 @@ db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
 # register blueprint
+from app.api import bp as api_bp
+
 app.register_blueprint(api_bp, url_prefix='/api')
+
+from app import models

@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 from app.api import bp
-
+from flask import request, jsonify
+from app.api.error import bad_request
+from app.models import Item
+from app import db
 """
 -------------------------------------------------
-   File Name：     routes
+   File Name：     item
    Description :
    Author :       burt
    date：          2019-03-16
@@ -26,7 +29,14 @@ def get_item(item_id):
 
 @bp.route('/items', methods=['POST'])
 def add_item():
-    pass
+    data = request.get_json() or {}
+    if not ('body' in data and 'status' in data and 'category_id' in data):
+        return bad_request(400, 'body, status, category_id must be included')
+    item = Item()
+    item.from_dict(data, new_item=True)
+    db.session.add(item)
+    db.session.commit()
+    return jsonify(item.to_dict())
 
 
 @bp.route('/items/<item_id>')
