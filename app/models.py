@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 import uuid
 from datetime import datetime
+
 from flask import url_for
+
 from app import db
 
 """
@@ -31,8 +33,8 @@ class PaginateMixIn(object):
             },
             '_links': {
                 'self': url_for(endpoint, page=page, per_page=per_page, **keywords),
-                'next': url_for(endpoint, page=page+1, per_page=per_page, **keywords) if resource.has_next else None,
-                'prev': url_for(endpoint, page=page-1, per_page=per_page, **keywords) if resource.has_prev else None
+                'next': url_for(endpoint, page=page + 1, per_page=per_page, **keywords) if resource.has_next else None,
+                'prev': url_for(endpoint, page=page - 1, per_page=per_page, **keywords) if resource.has_prev else None
             }
         }
         return data
