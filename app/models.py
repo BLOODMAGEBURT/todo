@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
-from app import db
-from datetime import datetime
 import uuid
+from datetime import datetime
+from flask import url_for
+from app import db
 
 """
 -------------------------------------------------
@@ -16,7 +17,28 @@ import uuid
 """
 
 
-class Item(db.Model):
+class PaginateMixIn(object):
+    @staticmethod
+    def to_collection_dict(query, page, per_page, endpoint, **keywords):
+        resource = query.paginate(page, per_page, False)
+        data = {
+            'items': [item.to_dict() for item in resource],
+            '_meta': {
+                'page': page,
+                'per_page': per_page,
+                'total_pages': resource.pages,
+                'total_items': resource.total
+            },
+            '_links': {
+                'self': url_for(endpoint, page=page, per_page=per_page, **keywords),
+                'next': url_for(endpoint, page=page+1, per_page=per_page, **keywords) if resource.has_next else None,
+                'prev': url_for(endpoint, page=page-1, per_page=per_page, **keywords) if resource.has_prev else None
+            }
+        }
+        return data
+
+
+class Item(PaginateMixIn, db.Model):
     id = db.Column(db.String(36), primary_key=True)
     body = db.Column(db.String(300))
     post_on = db.Column(db.DateTime, default=datetime.utcnow)
