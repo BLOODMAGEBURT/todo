@@ -22,7 +22,7 @@ class PaginateMixIn(object):
     def to_collection_dict(query, page, per_page, endpoint, **keywords):
         resource = query.paginate(page, per_page, False)
         data = {
-            'items': [item.to_dict() for item in resource],
+            'items': [item.to_dict() for item in resource.items],
             '_meta': {
                 'page': page,
                 'per_page': per_page,
@@ -49,7 +49,7 @@ class Item(PaginateMixIn, db.Model):
         data = {
             'id': self.id,
             'body': self.body,
-            'post_on': self.post_on,
+            'post_on': self.post_on.isoformat() + 'Z',
             'status': self.status,
             'category_id': self.category_id,
             'category_title': self.category.title
