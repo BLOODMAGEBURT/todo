@@ -70,7 +70,25 @@ class Item(PaginateMixIn, db.Model):
             self.id = self.get_id()
 
 
-class Category(db.Model):
+class Category(PaginateMixIn, db.Model):
     id = db.Column(db.String(36), primary_key=True)
     title = db.Column(db.String(50))
     items = db.relationship('Item', backref='category', lazy='dynamic')
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'title': self.title,
+            'items': [item.to_dict() for item in self.items]
+        }
+
+        return data
+
+    @staticmethod
+    def get_id():
+        return str(uuid.uuid4())
+
+    def from_dict(self, data, new_category=False):
+        setattr(self, 'title', data['title'])
+        if new_category:
+            self.id = self.get_id()

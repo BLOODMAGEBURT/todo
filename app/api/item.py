@@ -23,7 +23,8 @@ from app.models import Item
 def get_items():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 15, type=int), 100)
-    return jsonify(Item.to_collection_dict(Item.query, page=page, per_page=per_page, endpoint='api.get_items'))
+    return jsonify(
+        Item.to_collection_dict(Item.query.filter_by(status=1), page=page, per_page=per_page, endpoint='api.get_items'))
 
 
 @bp.route('/items/<item_id>', methods=['GET'])
