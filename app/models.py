@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 import uuid
 from datetime import datetime
-
 from flask import url_for
-
 from app import db
+from werkzeug.security import generate_password_hash, check_password_hash
 
 """
 -------------------------------------------------
@@ -46,6 +45,7 @@ class Item(PaginateMixIn, db.Model):
     post_on = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.Integer, default=1)  # 1未完成 2已完成 0已删除
     category_id = db.Column(db.String(36), db.ForeignKey('category.id'))
+    user_id = db.Column(db.String(36), db.ForeignKey('user.id'))
 
     def to_dict(self):
         data = {
@@ -74,6 +74,7 @@ class Category(PaginateMixIn, db.Model):
     id = db.Column(db.String(36), primary_key=True)
     title = db.Column(db.String(50))
     items = db.relationship('Item', backref='category', lazy='dynamic')
+    user_id = db.Column(db.String(36), db.ForeignKey('user.id'))
 
     def to_dict(self):
         data = {
@@ -92,3 +93,19 @@ class Category(PaginateMixIn, db.Model):
         setattr(self, 'title', data['title'])
         if new_category:
             self.id = self.get_id()
+
+
+class User(db.Model):
+    id = db.Column(db.String(36), primary_key=True)
+    username = db.Column(db.String(64), index=True, unique=True)
+    password_hash = db.Column(db.String(128))
+    token = db.Column(db.String(32), index=True, unique=True)
+    token_expiration = db.Column(db.DateTime)
+    categorys = db.relationship('Category', backref='user', lazy='dynamic')
+    items = db.relationship('Item', backref='user', lazy='dynamic')
+
+    def set_password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password):
+        return check_password_hash(self.password_hash, password)
