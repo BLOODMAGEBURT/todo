@@ -89,7 +89,7 @@ class Category(PaginateMixIn, db.Model):
     def get_id():
         return str(uuid.uuid4())
 
-    def from_dict(self, data, new_category=False):
+    def from_dict(self, data: object, new_category: object = False) -> object:
         setattr(self, 'title', data['title'])
         if new_category:
             self.id = self.get_id()

@@ -43,7 +43,7 @@ def add_category():
     if Category.query.filter_by(title=data['title']).first() is not None:
         bad_request(400, 'please use a different title')
 
-    category = Category()
+    category: Category = Category()
     category.from_dict(data, new_category=True)
     db.session.add(category)
     db.session.commit()
