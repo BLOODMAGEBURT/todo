@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-from app.api import bp
-from flask import request, jsonify
-from app.models import Category
-from app.api.error import bad_request
-from app import db
 import logging
+
+from flask import request, jsonify
+
+from app import db
+from app.api import bp
+from app.api.error import bad_request
+from app.models import Category
 
 """
 -------------------------------------------------
@@ -62,7 +64,6 @@ def update_category(cat_id):
     old_category = Category.query.filter_by(title=data['title']).first()
 
     if old_category is not None and old_category.id != cat_id:
-        # logging.info('category.id:{} , cat_id: {}'.format(old_category.id, cat_id))
         return bad_request(400, 'please use a different title')
     category.from_dict(data)
     db.session.commit()

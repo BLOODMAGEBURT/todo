@@ -1,9 +1,13 @@
 # -*- coding: utf-8 -*-
+import base64
+import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timedelta
+
 from flask import url_for
-from app import db
 from werkzeug.security import generate_password_hash, check_password_hash
+
+from app import db
 
 """
 -------------------------------------------------
@@ -16,6 +20,10 @@ from werkzeug.security import generate_password_hash, check_password_hash
                    2019-03-16:
 -------------------------------------------------
 """
+
+
+def get_id():
+    return str(uuid.uuid4())
 
 
 class PaginateMixIn(object):
@@ -46,6 +54,7 @@ class Item(PaginateMixIn, db.Model):
     status = db.Column(db.Integer, default=1)  # 1未完成 2已完成 0已删除
     category_id = db.Column(db.String(36), db.ForeignKey('category.id'))
     user_id = db.Column(db.String(36), db.ForeignKey('user.id'))
+    create_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
         data = {
@@ -75,6 +84,7 @@ class Category(PaginateMixIn, db.Model):
     title = db.Column(db.String(50))
     items = db.relationship('Item', backref='category', lazy='dynamic')
     user_id = db.Column(db.String(36), db.ForeignKey('user.id'))
+    create_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def to_dict(self):
         data = {
@@ -82,20 +92,19 @@ class Category(PaginateMixIn, db.Model):
             'title': self.title,
             'items': [item.to_dict() for item in self.items]
         }
-
         return data
 
     @staticmethod
     def get_id():
         return str(uuid.uuid4())
 
-    def from_dict(self, data: object, new_category: object = False) -> object:
+    def from_dict(self, data: object, new_category: object = False):
         setattr(self, 'title', data['title'])
         if new_category:
             self.id = self.get_id()
 
 
-class User(db.Model):
+class User(PaginateMixIn, db.Model):
     id = db.Column(db.String(36), primary_key=True)
     username = db.Column(db.String(64), index=True, unique=True)
     password_hash = db.Column(db.String(128))
@@ -103,9 +112,46 @@ class User(db.Model):
     token_expiration = db.Column(db.DateTime)
     categorys = db.relationship('Category', backref='user', lazy='dynamic')
     items = db.relationship('Item', backref='user', lazy='dynamic')
+    create_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
+
+    def get_token(self, expires_in=3600):
+        now = datetime.utcnow()
+        if self.token and self.token_expiration > now + timedelta(seconds=60):
+            return self.token
+        self.token = base64.b64encode(os.urandom(24)).decode('utf-8')
+        self.token_expiration = now + timedelta(seconds=expires_in)
+        return self.token
+
+    def revoke_token(self):
+        self.token_expiration = self.token_expiration - timedelta(seconds=1)
+
+    @staticmethod
+    def check_token(token):
+        user = User.query.filter_by(token=token).first()
+        if user is None or user.token_expiration < datetime.utcnow():
+            return None
+        return user
+
+    def to_dict(self):
+        data = {
+            'id': self.id,
+            'username': self.username,
+            'categorys': Category.to_collection_dict(self.categorys, 1, 15, 'api.get_categorys'),
+            'items': [item.to_dict() for item in self.items]
+        }
+        return data
+
+    def from_dict(self, data, new_user=False):
+        setattr(self, 'username', data['username'])
+
+        if 'password_hash' in data:
+            self.set_password(data['password_hash'])
+
+        if new_user:
+            self.id = get_id()
