@@ -21,7 +21,10 @@ from app.models import User, Category, get_id
 
 @bp.route('/users', methods=['GET'])
 def get_users():
-    pass
+    page = request.args.get('page', 1, type=int)
+    per_page = min(request.args.get('per_page', 15, type=int), 100)
+    data = User.to_collection_dict(User.query, page, per_page, 'api.get_users')
+    return jsonify(data)
 
 
 @bp.route('/users/<user_id>', methods=['GET'])
