@@ -6,6 +6,7 @@ from app.api import bp
 from app.api.error import bad_request
 from app.models import User, Category, get_id
 
+from app.api.auth import token_auth
 """
 -------------------------------------------------
    File Name：     user
@@ -20,6 +21,7 @@ from app.models import User, Category, get_id
 
 
 @bp.route('/users', methods=['GET'])
+@token_auth.login_required
 def get_users():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 15, type=int), 100)
@@ -28,6 +30,7 @@ def get_users():
 
 
 @bp.route('/users/<user_id>', methods=['GET'])
+@token_auth.login_required
 def get_user(user_id):
     user = User.query.get_or_404(user_id)
     return jsonify(user.to_dict())
@@ -35,6 +38,7 @@ def get_user(user_id):
 
 # 新建用户
 @bp.route('/users', methods=['POST'])
+@token_auth.login_required
 def add_user():
     data = request.get_json() or {}
     if not ('username' in data and 'password_hash' in data):
@@ -54,25 +58,9 @@ def add_user():
 
 
 @bp.route('/users', methods=['PUT'])
+@token_auth.login_required
 def update_user():
     pass
 
 
-# 用户登录
-@bp.route('/get_token', methods=['POST'])
-def get_token():
-    data = request.get_json() or {}
-    if not ('username' in data and 'password_hash' in data):
-        return bad_request(400, 'username, password_hash must be included')
 
-    user = User.query.filter_by(username=data['username']).first()
-
-    if user is None:
-        return bad_request(400, 'username is not register')
-
-    if not user.check_password(data['password_hash']):
-        return bad_request(400, 'password is incorrect')
-
-    token = user.get_token()
-    db.session.commit()
-    return jsonify(token=token)

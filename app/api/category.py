@@ -7,6 +7,7 @@ from app import db
 from app.api import bp
 from app.api.error import bad_request
 from app.models import Category
+from app.api.auth import token_auth
 
 """
 -------------------------------------------------
@@ -23,6 +24,7 @@ logging.basicConfig(level=logging.INFO)
 
 
 @bp.route('/categorys', methods=['GET'])
+@token_auth.login_required
 def get_categorys():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 15, type=int), 100)
@@ -31,12 +33,14 @@ def get_categorys():
 
 
 @bp.route('/categorys/<cat_id>', methods=['GET'])
+@token_auth.login_required
 def get_category(cat_id):
     data = Category.query.get_or_404(cat_id)
     return jsonify(data.to_dict())
 
 
 @bp.route('/categorys', methods=['POST'])
+@token_auth.login_required
 def add_category():
     data = request.get_json() or {}
     if 'title' not in data:
@@ -53,6 +57,7 @@ def add_category():
 
 
 @bp.route('/categorys/<cat_id>', methods=['PUT'])
+@token_auth.login_required
 def update_category(cat_id):
     category = Category.query.get(cat_id)
     if category is None:
@@ -71,5 +76,6 @@ def update_category(cat_id):
 
 
 @bp.route('/categorys/<cat_id>', methods=['DELETE'])
+@token_auth.login_required
 def del_category(cat_id):
     pass

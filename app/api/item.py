@@ -5,6 +5,7 @@ from app import db
 from app.api import bp
 from app.api.error import bad_request
 from app.models import Item
+from app.api.auth import token_auth
 
 """
 -------------------------------------------------
@@ -20,6 +21,7 @@ from app.models import Item
 
 
 @bp.route('/items', methods=['GET'])
+@token_auth.login_required
 def get_items():
     page = request.args.get('page', 1, type=int)
     per_page = min(request.args.get('per_page', 15, type=int), 100)
@@ -28,11 +30,13 @@ def get_items():
 
 
 @bp.route('/items/<item_id>', methods=['GET'])
+@token_auth.login_required
 def get_item(item_id):
     return jsonify(Item.query.get_or_404(item_id).to_dict())
 
 
 @bp.route('/items', methods=['POST'])
+@token_auth.login_required
 def add_item():
     data = request.get_json() or {}
     if not ('body' in data and 'status' in data and 'category_id' in data):
@@ -45,6 +49,7 @@ def add_item():
 
 
 @bp.route('/items/<item_id>')
+@token_auth.login_required
 def update_item(item_id):
     data = request.get_json() or {}
     if not ('body' in data and 'status' in data and 'category_id' in data):
@@ -56,6 +61,7 @@ def update_item(item_id):
 
 
 @bp.route('/items/<item_id>')
+@token_auth.login_required
 def del_item(item_id):
     item = Item.query.get_or_404(item_id)
     item.status = 0
