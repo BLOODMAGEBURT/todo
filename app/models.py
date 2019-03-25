@@ -142,7 +142,7 @@ class User(PaginateMixIn, db.Model):
         data = {
             'id': self.id,
             'username': self.username,
-            'categorys': Category.to_collection_dict(self.categorys, 1, 15, 'api.get_categorys'),
+            'categorys': [category.to_dict() for category in self.categorys],
             'items': [item.to_dict() for item in self.items]
         }
         return data
